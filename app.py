@@ -129,7 +129,6 @@ textarea:focus, input:focus { outline: none !important; box-shadow: 0 0 0 1px va
 div[data-baseweb="textarea"], div[data-baseweb="input"], div[data-baseweb="select"] > div { border-radius: 8px !important; }
 .stButton button:focus-visible { box-shadow: 0 0 0 2px rgba(34,211,238,.35) !important; }
 div[data-testid="stFileUploaderDropzone"] { background: var(--bg); border: 1px dashed var(--line2); border-radius: 8px; }
-.stApp { animation: fadein .35s ease-out; } @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -212,7 +211,6 @@ def pill(ok, yes="PASS", no="FAIL", soft=False):
 # ---------------------------------------------------------------- sidebar
 with st.sidebar:
     st.markdown(wordmark(30), unsafe_allow_html=True)
-    st.markdown('<div class="side-note">Constraint-aware planning for the Mind to Machine Hackathon.</div>', unsafe_allow_html=True)
     prov, model = PROV, DEFAULT_MODELS[PROV]
     if prov == "mock":
         st.markdown('<div class="mock">Demo mode: no API key found, so no model is called.</div>', unsafe_allow_html=True)
@@ -260,8 +258,6 @@ _status = ('<span class="status idle">No plan yet</span>' if not cur else
            '<span class="status ok">Feasible</span>' if cur["validation"]["feasible"] else '<span class="status bad">Not feasible</span>')
 st.markdown(f'''<div class="hero"><div class="eyebrow">CONCORD · Event Planner</div>
 <div class="title">Hackathon plan {_status}</div>
-<div class="tag">Reads messy English and Roman Urdu messages, resolves conflicts by authority and date, and plans venue,
-schedule, food, judging and budget. Every hard constraint is checked before a plan is called feasible.</div>
 <div class="chips">{"".join(_chips)}</div></div>''', unsafe_allow_html=True)
 
 tabs = st.tabs(["Overview", "Plan", "Messages", "Updates", "What-if", "Model trace", "Export"])
@@ -283,111 +279,103 @@ with tabs[0]:
                     (st.success if res.get("ok") else st.error)(res.get("error") or f"Done: version {res['version']}")
                     st.rerun()
     if not cur:
-        empty("No plan yet",
-              "1. Open <b>Load message pack</b> above and upload or paste the .txt pack.<br>"
-              "2. Press <b>Run full plan</b>. One model call reads every message; the rest is exact Python.<br>"
-              "3. Add new messages one at a time in <b>Updates</b>. Each one is checked before it can change the plan.")
+        empty("No plan yet", "Upload or paste the message pack above, then press <b>Run full plan</b>.")
     else:
         P, V = cur["plan"], cur["validation"]
         b, j, hc = P["budget"], P["judging"], P["headcount"]
         hard = [c for c in V["checks"] if c["hard"]]
-        r1 = st.columns(5)
-        card(r1[0], "Approved budget", pkr(b["budget"]), "all-inclusive")
-        card(r1[1], "Planned spend", pkr(b["total"]), f"{(b['total'] / b['budget'] * 100):.0f}% of budget" if b["budget"] else "")
-        card(r1[2], "Remaining", pkr(b["remaining"]), "after committed + planned", "")
-        card(r1[3], "People on site", hc["total"], f"{hc['students']} students · {hc['staff']} staff · {hc['judges']} judges")
-        card(r1[4], "Constraint checks", f"{sum(c['passed'] for c in hard)}/{len(hard)} hard",
-             f"{V['warnings']} soft warnings")
-        st.write("")
-        r2 = st.columns(5)
-        card(r2[0], "Venue", (P["venue"].get("chosen") or {}).get("venue", "—"),
-             f"{pkr(P['venue'].get('cost'))} · {int((P['venue'].get('chosen') or {}).get('capacity') or 0)} seats")
-        card(r2[1], "Schedule", f"{P['schedule'].get('duration') or '—'} min",
-             f"{len(P['schedule'].get('blocks', []))} blocks · starts {P['schedule'].get('start')}")
-        card(r2[2], "Catering", (P["food"].get("chosen") or {}).get("option", "—"),
+        r = st.columns(5)
+        card(r[0], "Venue", (P["venue"].get("chosen") or {}).get("venue", "—"),
+             f"{int((P['venue'].get('chosen') or {}).get('capacity') or 0)} seats · {pkr(P['venue'].get('cost'))}")
+        card(r[1], "Schedule", f"{P['schedule'].get('start')} · {P['schedule'].get('duration') or '—'} min",
+             f"{len(P['schedule'].get('blocks', []))} blocks")
+        card(r[2], "Food", (P["food"].get("chosen") or {}).get("option", "—"),
              f"{P['food']['quantity']} meals · {pkr(P['food']['cost'])}")
-        card(r2[3], "Judges", j.get("judges_used"), f"of {j.get('judges_available')} confirmed · {j.get('judging_minutes')} min")
-        card(r2[4], "Teams", P["participants"]["teams"], f"team size {P['participants']['team_size']} · last update {cur['timestamp'][11:16]}")
-
-        sec(f"Agent pipeline · version {cur['n']} ({cur['run']})")
-        st.markdown(pipeline_html(cur, eng.calls), unsafe_allow_html=True)
-        st.caption("Cyan = made a model call · outlined = output changed in this version · dim = recomputed in Python, no change. "
-                   "Only the reading agent needs language understanding; every number is computed in code.")
-
-        sec("Constraint validation")
-        areas = ["general", "venue", "schedule", "food", "judging", "budget"]
-        vc = st.columns(len(areas))
-        for col, area in zip(vc, areas):
-            cs = [c for c in V["checks"] if c["domain"] == area]
-            if not cs:
-                col.markdown(f'<div class="vcard ok"><div class="h">{area}<span class="pill pass">—</span></div>'
-                             f'<div class="vrow">no checks</div></div>', unsafe_allow_html=True)
-                continue
-            hf = any(c["hard"] and not c["passed"] for c in cs)
-            w = any((not c["hard"]) and not c["passed"] for c in cs)
-            cls, lab, pc = ("bad", "FAIL", "fail") if hf else (("w", "WARN", "warn") if w else ("ok", "PASS", "pass"))
-            rows = "".join(
-                f'<div class="vrow"><span class="x" style="color:{"#34d399" if c["passed"] else ("#f87171" if c["hard"] else "#fbbf24")}">'
-                f'{"✓" if c["passed"] else ("✗" if c["hard"] else "!")}</span>{c["constraint"]}'
-                f'<div style="color:#8593ab;font-size:11.5px;margin-left:16px">{c["detail"]}</div></div>' for c in cs)
-            col.markdown(f'<div class="vcard {cls}"><div class="h">{"attendance" if area == "general" else area}'
-                         f'<span class="pill {pc}">{lab}</span></div>{rows}</div>', unsafe_allow_html=True)
-        with st.expander("Full validation table (evidence + suggested fixes)"):
-            table(pd.DataFrame([{"Result": "PASS" if c["passed"] else ("FAIL" if c["hard"] else "WARN"), "Type": "HARD" if c["hard"] else "soft",
-                                 "Area": c["domain"], "Constraint": c["constraint"], "Detail": c["detail"],
-                                 "Evidence": ", ".join(c["evidence"]), "Suggested fix": c["suggestion"]} for c in V["checks"]]))
-
-        sec("At a glance")
-        g1, g2, g3 = st.columns(3)
-        with g1:
-            st.markdown("**Budget split**")
-            parts = [{"item": l["item"], "amount": l["amount"]} for l in b["lines"] if l["amount"]]
-            if b["remaining"] is not None and b["remaining"] > 0:
-                parts.append({"item": "Remaining", "amount": b["remaining"]})
-            fig = px.pie(pd.DataFrame(parts), names="item", values="amount", hole=.62, color_discrete_sequence=PALETTE)
-            fig.update_traces(textinfo="percent", hovertemplate="%{label}<br>Rs %{value:,.0f}<extra></extra>")
-            fig.update_layout(**DARK, height=300, showlegend=True, legend=dict(font=dict(size=10)),
-                              annotations=[dict(text=f"<b>{pkr(b['total'])}</b><br>of {pkr(b['budget'])}", showarrow=False,
-                                                font=dict(size=13, color="#c6d0e0"))])
-            st.plotly_chart(fig, use_container_width=True)
-        with g2:
-            st.markdown("**Who needs a seat and a meal**")
-            groups = [("Students", hc["students"] or 0), ("Staff", hc["staff"]), ("Judges", hc["judges"])] + \
-                     [(k.title(), v) for k, v in hc["other_groups"].items()]
-            figh = go.Figure(go.Bar(x=[v for _, v in groups], y=[k for k, _ in groups], orientation="h",
-                                    marker=dict(color=PALETTE[:len(groups)]), text=[v for _, v in groups], textposition="auto"))
-            seats = (P["venue"].get("chosen") or {}).get("capacity")
-            figh.update_layout(**DARK, height=300, xaxis_title=f"total {hc['total']}" + (f" · venue seats {int(seats)}" if seats else ""),
-                               yaxis=dict(autorange="reversed"))
-            st.plotly_chart(figh, use_container_width=True)
-        with g3:
-            st.markdown("**Dependency graph** (what a change invalidates)")
-            from core.dependencies import GRAPH
-            pos = {"general": (0, 1), "judging": (1, 2), "venue": (2, 2), "food": (1, 0), "schedule": (2, 0), "budget": (3, 1)}
-            figd = go.Figure()
-            for a_, outs in GRAPH.items():
-                for b_ in outs:
-                    (x0, y0), (x1, y1) = pos[a_], pos[b_]
-                    figd.add_annotation(x=x1, y=y1, ax=x0, ay=y0, xref="x", yref="y", axref="x", ayref="y", showarrow=True,
-                                        arrowhead=3, arrowsize=1.1, arrowwidth=1.2, arrowcolor="#3b82f6", standoff=20, startstandoff=20)
-            changed = set(cur.get("changed_domains", []))
-            figd.add_trace(go.Scatter(x=[p_[0] for p_ in pos.values()], y=[p_[1] for p_ in pos.values()], mode="markers+text",
-                                      text=["attendance" if k == "general" else k for k in pos], textposition="middle center",
-                                      marker=dict(size=62, color=["#0e7490" if k in changed else "#0f1a2c" for k in pos],
-                                                  line=dict(color="#22d3ee", width=2)),
-                                      textfont=dict(color="#c6d0e0", size=11), hoverinfo="text"))
-            figd.update_layout(**DARK, height=300, showlegend=False, xaxis=dict(visible=False, range=[-0.5, 3.5]),
-                               yaxis=dict(visible=False, range=[-0.6, 2.6]))
-            st.plotly_chart(figd, use_container_width=True)
+        card(r[3], "Judges", j.get("judges_used"), f"{P['participants']['teams']} teams · {j.get('judging_minutes')} min")
+        card(r[4], "Budget", pkr(b["total"]), f"of {pkr(b['budget'])} · {pkr(b['remaining'])} left" if b["budget"] else "")
+        st.write("")
 
         rej = [d for d in eng.decisions if d.kind in ("rejected", "conflict", "rollback")]
-        sec(f"Rejected messages & conflicts ({len(rej)})")
-        if not rej:
-            st.markdown('<div class="okbox">No message has been rejected so far.</div>', unsafe_allow_html=True)
-        for d in rej:
-            mt = next((m["text"] for m in S["messages"] if m["id"] == d.message_id), "")
-            st.markdown(f'<div class="reject"><b>{d.kind.upper()}</b> · {d.run} · {d.message_id or ""}'
-                        f'{"<br><i style=color:#8593ab>“" + mt + "”</i>" if mt else ""}<br>{d.text}</div>', unsafe_allow_html=True)
+        with st.expander(f"Details: checks, agent pipeline, charts, rejected messages ({len(rej)})", expanded=False):
+            sec(f"Agent pipeline · version {cur['n']} ({cur['run']})")
+            st.markdown(pipeline_html(cur, eng.calls), unsafe_allow_html=True)
+            st.caption("Cyan = made a model call · outlined = output changed in this version · dim = recomputed in Python, no change. "
+                       "Only the reading agent needs language understanding; every number is computed in code.")
+
+            sec("Constraint validation")
+            areas = ["general", "venue", "schedule", "food", "judging", "budget"]
+            vc = st.columns(len(areas))
+            for col, area in zip(vc, areas):
+                cs = [c for c in V["checks"] if c["domain"] == area]
+                if not cs:
+                    col.markdown(f'<div class="vcard ok"><div class="h">{area}<span class="pill pass">—</span></div>'
+                                 f'<div class="vrow">no checks</div></div>', unsafe_allow_html=True)
+                    continue
+                hf = any(c["hard"] and not c["passed"] for c in cs)
+                w = any((not c["hard"]) and not c["passed"] for c in cs)
+                cls, lab, pc = ("bad", "FAIL", "fail") if hf else (("w", "WARN", "warn") if w else ("ok", "PASS", "pass"))
+                rows = "".join(
+                    f'<div class="vrow"><span class="x" style="color:{"#34d399" if c["passed"] else ("#f87171" if c["hard"] else "#fbbf24")}">'
+                    f'{"✓" if c["passed"] else ("✗" if c["hard"] else "!")}</span>{c["constraint"]}'
+                    f'<div style="color:#8593ab;font-size:11.5px;margin-left:16px">{c["detail"]}</div></div>' for c in cs)
+                col.markdown(f'<div class="vcard {cls}"><div class="h">{"attendance" if area == "general" else area}'
+                             f'<span class="pill {pc}">{lab}</span></div>{rows}</div>', unsafe_allow_html=True)
+            with st.container():  # full validation table (evidence + suggested fixes)
+                table(pd.DataFrame([{"Result": "PASS" if c["passed"] else ("FAIL" if c["hard"] else "WARN"), "Type": "HARD" if c["hard"] else "soft",
+                                     "Area": c["domain"], "Constraint": c["constraint"], "Detail": c["detail"],
+                                     "Evidence": ", ".join(c["evidence"]), "Suggested fix": c["suggestion"]} for c in V["checks"]]))
+
+            sec("At a glance")
+            g1, g2, g3 = st.columns(3)
+            with g1:
+                st.markdown("**Budget split**")
+                parts = [{"item": l["item"], "amount": l["amount"]} for l in b["lines"] if l["amount"]]
+                if b["remaining"] is not None and b["remaining"] > 0:
+                    parts.append({"item": "Remaining", "amount": b["remaining"]})
+                fig = px.pie(pd.DataFrame(parts), names="item", values="amount", hole=.62, color_discrete_sequence=PALETTE)
+                fig.update_traces(textinfo="percent", hovertemplate="%{label}<br>Rs %{value:,.0f}<extra></extra>")
+                fig.update_layout(**DARK, height=300, showlegend=True, legend=dict(font=dict(size=10)),
+                                  annotations=[dict(text=f"<b>{pkr(b['total'])}</b><br>of {pkr(b['budget'])}", showarrow=False,
+                                                    font=dict(size=13, color="#c6d0e0"))])
+                st.plotly_chart(fig, use_container_width=True)
+            with g2:
+                st.markdown("**Who needs a seat and a meal**")
+                groups = [("Students", hc["students"] or 0), ("Staff", hc["staff"]), ("Judges", hc["judges"])] + \
+                         [(k.title(), v) for k, v in hc["other_groups"].items()]
+                figh = go.Figure(go.Bar(x=[v for _, v in groups], y=[k for k, _ in groups], orientation="h",
+                                        marker=dict(color=PALETTE[:len(groups)]), text=[v for _, v in groups], textposition="auto"))
+                seats = (P["venue"].get("chosen") or {}).get("capacity")
+                figh.update_layout(**DARK, height=300, xaxis_title=f"total {hc['total']}" + (f" · venue seats {int(seats)}" if seats else ""),
+                                   yaxis=dict(autorange="reversed"))
+                st.plotly_chart(figh, use_container_width=True)
+            with g3:
+                st.markdown("**Dependency graph** (what a change invalidates)")
+                from core.dependencies import GRAPH
+                pos = {"general": (0, 1), "judging": (1, 2), "venue": (2, 2), "food": (1, 0), "schedule": (2, 0), "budget": (3, 1)}
+                figd = go.Figure()
+                for a_, outs in GRAPH.items():
+                    for b_ in outs:
+                        (x0, y0), (x1, y1) = pos[a_], pos[b_]
+                        figd.add_annotation(x=x1, y=y1, ax=x0, ay=y0, xref="x", yref="y", axref="x", ayref="y", showarrow=True,
+                                            arrowhead=3, arrowsize=1.1, arrowwidth=1.2, arrowcolor="#3b82f6", standoff=20, startstandoff=20)
+                changed = set(cur.get("changed_domains", []))
+                figd.add_trace(go.Scatter(x=[p_[0] for p_ in pos.values()], y=[p_[1] for p_ in pos.values()], mode="markers+text",
+                                          text=["attendance" if k == "general" else k for k in pos], textposition="middle center",
+                                          marker=dict(size=62, color=["#0e7490" if k in changed else "#0f1a2c" for k in pos],
+                                                      line=dict(color="#22d3ee", width=2)),
+                                          textfont=dict(color="#c6d0e0", size=11), hoverinfo="text"))
+                figd.update_layout(**DARK, height=300, showlegend=False, xaxis=dict(visible=False, range=[-0.5, 3.5]),
+                                   yaxis=dict(visible=False, range=[-0.6, 2.6]))
+                st.plotly_chart(figd, use_container_width=True)
+
+            rej = [d for d in eng.decisions if d.kind in ("rejected", "conflict", "rollback")]
+            sec(f"Rejected messages & conflicts ({len(rej)})")
+            if not rej:
+                st.markdown('<div class="okbox">No message has been rejected so far.</div>', unsafe_allow_html=True)
+            for d in rej:
+                mt = next((m["text"] for m in S["messages"] if m["id"] == d.message_id), "")
+                st.markdown(f'<div class="reject"><b>{d.kind.upper()}</b> · {d.run} · {d.message_id or ""}'
+                            f'{"<br><i style=color:#8593ab>“" + mt + "”</i>" if mt else ""}<br>{d.text}</div>', unsafe_allow_html=True)
 
 # ================================================================ EVENT PLAN
 with tabs[1]:
