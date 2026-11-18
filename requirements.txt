@@ -1,0 +1,7 @@
+streamlit>=1.38
+pydantic>=2.6
+plotly>=5.20
+google-genai>=1.0
+anthropic>=0.40
+python-dotenv>=1.0
+pytest>=8.0
