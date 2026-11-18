@@ -44,118 +44,210 @@ def render_table(data, **kwargs):
     st.dataframe(df, **kwargs)
 
 
-# Clean, crisp light theme with clear black/gray accents
+# Ultra-clean, minimal monochrome Black & White / Light theme
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
     --bg: #ffffff;
-    --panel: #f8fafc;
-    --panel-hover: #f1f5f9;
-    --border: #e2e8f0;
-    --border-accent: #0284c7;
-    --accent: #0284c7;
-    --text: #0f172a;
-    --text-muted: #475569;
-    --dim: #64748b;
-    --ok: #059669;
-    --bad: #dc2626;
-    --warn: #d97706;
+    --card-bg: #ffffff;
+    --sidebar-bg: #fafafa;
+    --border: #e4e4e7;
+    --text-primary: #09090b;
+    --text-muted: #71717a;
+    --accent-black: #18181b;
 }
 
-html, body, [class*="css"], .stApp { font-family: 'Inter', system-ui, sans-serif; }
-.stApp { background: var(--bg); color: var(--text); }
+html, body, [class*="css"], .stApp {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #ffffff !important;
+    color: #09090b !important;
+}
+
 header[data-testid="stHeader"] { background: transparent; }
-.block-container { padding-top: 1.5rem; padding-bottom: 3rem; max-width: 1360px; }
-section[data-testid="stSidebar"] { background: #f8fafc; border-right: 1px solid var(--border); }
+.block-container { padding-top: 1.5rem; padding-bottom: 3rem; max-width: 1280px; }
+section[data-testid="stSidebar"] {
+    background: #fafafa !important;
+    border-right: 1px solid #e4e4e7 !important;
+}
 
 /* Header & Banner */
 .banner-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border-radius: 12px;
-    padding: 20px 24px;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    padding: 18px 22px;
     margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
 }
-.banner-title { font-size: 24px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
-.banner-desc { font-size: 13.5px; color: #475569; margin-top: 4px; max-width: 720px; line-height: 1.5; }
-.status-pill {
-    padding: 6px 14px;
-    border-radius: 9999px;
-    font-size: 13px;
+.banner-title {
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: 0.03em;
+    color: #09090b;
+    letter-spacing: -0.02em;
+}
+.banner-desc {
+    font-size: 13.5px;
+    color: #71717a;
+    margin-top: 3px;
+    line-height: 1.5;
+}
+
+/* Status Pills */
+.status-pill {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     display: inline-flex;
     align-items: center;
     gap: 6px;
 }
-.status-ok { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-.status-bad { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-.status-idle { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.status-ok {
+    background: #f4f4f5;
+    color: #09090b;
+    border: 1px solid #18181b;
+}
+.status-bad {
+    background: #ffffff;
+    color: #09090b;
+    border: 1.5px dashed #71717a;
+}
+.status-idle {
+    background: #f4f4f5;
+    color: #71717a;
+    border: 1px solid #e4e4e7;
+}
 
-/* KPI Cards */
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 22px; }
+/* Minimalist KPI Cards */
 .kpi-card {
     background: #ffffff;
-    border: 1px solid var(--border);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    border-radius: 10px;
-    padding: 16px;
-    transition: all 0.2s ease;
-}
-.kpi-card:hover { border-color: #94a3b8; background: #f8fafc; }
-.kpi-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-.kpi-value { font-size: 22px; font-weight: 700; color: #0f172a; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.kpi-sub { font-size: 12px; color: #64748b; margin-top: 4px; }
-
-/* Badges & Tables */
-.pill { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
-.pill-pass { color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; }
-.pill-fail { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
-.pill-warn { color: #d97706; background: #fffbeb; border: 1px solid #fde68a; }
-
-/* Notice boxes */
-.info-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
-    padding: 14px 18px;
+    padding: 16px;
+    transition: border-color 0.15s ease;
+}
+.kpi-card:hover {
+    border-color: #09090b;
+}
+.kpi-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.kpi-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #09090b;
+    margin-top: 5px;
+    font-variant-numeric: tabular-nums;
+}
+.kpi-sub {
+    font-size: 12px;
+    color: #71717a;
+    margin-top: 3px;
+}
+
+/* Badges */
+.pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.pill-pass {
+    background: #f4f4f5;
+    color: #09090b;
+    border: 1px solid #d4d4d8;
+}
+.pill-fail {
+    background: #18181b;
+    color: #ffffff;
+    border: 1px solid #18181b;
+}
+.pill-warn {
+    background: #ffffff;
+    color: #09090b;
+    border: 1px dashed #71717a;
+}
+
+/* Notice Cards */
+.info-card {
+    background: #fafafa;
+    border: 1px solid #e4e4e7;
+    border-radius: 6px;
+    padding: 14px 16px;
     margin: 10px 0;
     font-size: 13.5px;
-    color: #334155;
+    color: #27272a;
 }
 .reject-card {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-left: 4px solid #ef4444;
-    border-radius: 8px;
-    padding: 12px 16px;
+    background: #fafafa;
+    border: 1px solid #18181b;
+    border-left: 4px solid #09090b;
+    border-radius: 6px;
+    padding: 12px 14px;
     margin: 8px 0;
     font-size: 13px;
-    color: #991b1b;
-}
-.success-card {
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    border-left: 4px solid #10b981;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 8px 0;
-    font-size: 13px;
-    color: #065f46;
+    color: #09090b;
 }
 
-/* Tabs & UI controls */
-.stTabs [data-baseweb="tab-list"] { gap: 16px; border-bottom: 1px solid var(--border); }
-.stTabs [data-baseweb="tab"] { color: #64748b; padding: 10px 14px; font-weight: 600; font-size: 14px; }
-.stTabs [aria-selected="true"] { color: #0284c7 !important; border-bottom: 2px solid #0284c7 !important; }
-div[data-testid="stExpander"] details { border: 1px solid var(--border); border-radius: 8px; background: #ffffff; }
+/* Tabs & UI */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 20px;
+    border-bottom: 1px solid #e4e4e7;
+}
+.stTabs [data-baseweb="tab"] {
+    color: #71717a;
+    padding: 10px 4px;
+    font-weight: 500;
+    font-size: 14px;
+}
+.stTabs [aria-selected="true"] {
+    color: #09090b !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #09090b !important;
+}
+
+div[data-testid="stExpander"] details {
+    border: 1px solid #e4e4e7;
+    border-radius: 6px;
+    background: #ffffff;
+}
+
+/* Clean Button Styles */
+.stButton button {
+    border-radius: 6px;
+    border: 1px solid #e4e4e7;
+    background: #ffffff;
+    color: #09090b;
+    font-weight: 500;
+}
+.stButton button:hover {
+    border-color: #09090b;
+    color: #09090b;
+}
+.stButton button[kind="primary"] {
+    background: #09090b !important;
+    border: 1px solid #09090b !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+.stButton button[kind="primary"]:hover {
+    background: #27272a !important;
+}
+.stButton button[kind="primary"] p, .stButton button[kind="primary"] * {
+    color: #ffffff !important;
+}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -176,11 +268,11 @@ SAMPLE_PACKS = {
 
 # ---------------------------------------------------------------- SIDEBAR
 with st.sidebar:
-    st.markdown("### ⚡ MIND2MACHINE")
+    st.markdown("### MIND2MACHINE")
     st.caption("Constraint-Aware Event Planner")
 
     st.markdown("---")
-    st.markdown("#### 🤖 Model Provider")
+    st.markdown("#### Model Provider")
 
     has_gemini = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
     has_anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
@@ -203,22 +295,22 @@ with st.sidebar:
         api_key = st.text_input("Gemini API Key", value=default_key, type="password")
         if api_key:
             os.environ["GEMINI_API_KEY"] = api_key
-            st.success("API Key active")
+            st.caption("✓ API Key saved")
         else:
-            st.info("Tip: Leave blank to use Offline Mock mode")
+            st.caption("Leave blank to run Offline Mock mode")
         model_name = st.selectbox("Model", ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-3.5-flash-lite"], index=0)
     elif prov_key == "anthropic":
         default_key = os.getenv("ANTHROPIC_API_KEY") or ""
         api_key = st.text_input("Anthropic API Key", value=default_key, type="password")
         if api_key:
             os.environ["ANTHROPIC_API_KEY"] = api_key
-            st.success("API Key active")
+            st.caption("✓ API Key saved")
         model_name = st.selectbox("Model", ["claude-3-5-haiku-latest", "claude-haiku-4-5"], index=0)
     else:
-        st.markdown('<div class="success-card">⚡ <b>Offline Mock Active</b><br>Runs instantly with 0 tokens and fully validated arithmetic.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-card"><b>Offline Mode Active</b><br>Runs instantly with 0 tokens and exact arithmetic.</div>', unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("#### ⚙️ Planner Settings")
+    st.markdown("#### Planner Settings")
     s = S.setdefault("settings", {"food_policy": "standard-first", "default_start": "10:00"})
     new_pol = st.selectbox("Catering Preference", ["standard-first", "cheapest"],
                            index=0 if s.get("food_policy") == "standard-first" else 1,
@@ -232,10 +324,10 @@ with st.sidebar:
 
     st.markdown("---")
     c1, c2 = st.columns(2)
-    if c1.button("↺ Rollback", use_container_width=True, disabled=len(S["versions"]) < 2):
+    if c1.button("Rollback", use_container_width=True, disabled=len(S["versions"]) < 2):
         eng.rollback()
         st.rerun()
-    if c2.button("🗑️ Reset", use_container_width=True):
+    if c2.button("Reset", use_container_width=True):
         st.session_state.engine = Engine(None)
         persistence.save(st.session_state.engine.state)
         st.rerun()
@@ -257,13 +349,13 @@ cur = eng.current
 t_metrics = totals(eng.calls)
 
 if not cur:
-    status_html = '<span class="status-pill status-idle">⚪ No Plan Loaded</span>'
+    status_html = '<span class="status-pill status-idle">No Plan Loaded</span>'
     status_msg = "Load a message pack below or choose a sample pack to generate the complete event plan."
 elif cur["validation"]["feasible"]:
-    status_html = f'<span class="status-pill status-ok">✅ Plan Feasible (v{cur["n"]})</span>'
-    status_msg = f"All hard constraints passed! Plan v{cur['n']} is ready and within budget."
+    status_html = f'<span class="status-pill status-ok">● Plan Feasible (v{cur["n"]})</span>'
+    status_msg = f"All hard constraints passed. Plan v{cur['n']} is ready and within budget."
 else:
-    status_html = f'<span class="status-pill status-bad">⚠️ Not Feasible (v{cur["n"]})</span>'
+    status_html = f'<span class="status-pill status-bad">○ Not Feasible (v{cur["n"]})</span>'
     status_msg = "One or more constraints failed. Review the Validation tab for suggested fixes."
 
 st.markdown(f"""
@@ -287,7 +379,7 @@ if cur:
     with c1:
         st.markdown(f"""
         <div class="kpi-card">
-            <div class="kpi-label">🏢 Venue</div>
+            <div class="kpi-label">Venue</div>
             <div class="kpi-value">{ch_venue.get('venue', '—')}</div>
             <div class="kpi-sub">{int(ch_venue.get('capacity', 0))} seats · {pkr(v_info.get('cost'))}</div>
         </div>
@@ -295,7 +387,7 @@ if cur:
     with c2:
         st.markdown(f"""
         <div class="kpi-card">
-            <div class="kpi-label">👥 Headcount</div>
+            <div class="kpi-label">Headcount</div>
             <div class="kpi-value">{hc.get('total', 0)} People</div>
             <div class="kpi-sub">{hc.get('students', 0)} students · {hc.get('staff', 0)} staff · {hc.get('judges', 0)} judges</div>
         </div>
@@ -303,7 +395,7 @@ if cur:
     with c3:
         st.markdown(f"""
         <div class="kpi-card">
-            <div class="kpi-label">🍱 Catering</div>
+            <div class="kpi-label">Catering</div>
             <div class="kpi-value">{ch_food.get('option', '—')}</div>
             <div class="kpi-sub">{f_info.get('quantity', 0)} meals · {pkr(f_info.get('cost'))}</div>
         </div>
@@ -311,7 +403,7 @@ if cur:
     with c4:
         st.markdown(f"""
         <div class="kpi-card">
-            <div class="kpi-label">⚖️ Judging</div>
+            <div class="kpi-label">Judging</div>
             <div class="kpi-value">{j.get('judges_used', 0)} Judges</div>
             <div class="kpi-sub">{P['participants'].get('teams', 0)} teams · {j.get('judging_minutes', 0)} min total</div>
         </div>
@@ -320,7 +412,7 @@ if cur:
         rem_str = f"{pkr(b.get('remaining'))} left" if b.get("remaining") is not None else "No limit"
         st.markdown(f"""
         <div class="kpi-card">
-            <div class="kpi-label">💰 Budget</div>
+            <div class="kpi-label">Budget</div>
             <div class="kpi-value">{pkr(b.get('total'))}</div>
             <div class="kpi-sub">Limit: {pkr(b.get('budget'))} · {rem_str}</div>
         </div>
@@ -329,8 +421,8 @@ if cur:
     st.write("")
 
 # ---------------------------------------------------------------- PACK INPUT EXPANDER
-with st.expander("📥 " + ("Load / Change Message Pack" if cur else "Load Message Pack (Start Here)"), expanded=(cur is None)):
-    sel_sample = st.selectbox("⚡ Quick Load Sample Pack", list(SAMPLE_PACKS.keys()))
+with st.expander("Load Message Pack", expanded=(cur is None)):
+    sel_sample = st.selectbox("Quick Load Sample Pack", list(SAMPLE_PACKS.keys()))
 
     sample_content = ""
     if sel_sample and SAMPLE_PACKS[sel_sample]:
@@ -348,7 +440,7 @@ with st.expander("📥 " + ("Load / Change Message Pack" if cur else "Load Messa
         default_text = uploaded_file.getvalue().decode("utf-8", errors="replace") if uploaded_file else sample_content
         input_text = st.text_area("Message pack content", value=default_text, height=140, placeholder="Paste emails, WhatsApp chats, and notices here...")
 
-    if st.button("🚀 Run Full Plan", type="primary", use_container_width=True):
+    if st.button("Run Full Plan", type="primary", use_container_width=True):
         raw_to_run = input_text.strip()
         if not raw_to_run:
             st.error("Please select a sample pack, upload a file, or paste message text.")
@@ -357,30 +449,30 @@ with st.expander("📥 " + ("Load / Change Message Pack" if cur else "Load Messa
             with st.spinner("Extracting claims and solving constraints..."):
                 res = eng.run_full(raw_to_run, p)
             if res.get("ok"):
-                st.success(f"Plan generated successfully! Version v{res['version']}.")
+                st.success(f"Plan generated successfully (Version v{res['version']}).")
             else:
                 st.error(res.get("error", "Planning failed."))
             st.rerun()
 
 if not cur:
-    st.info("💡 Select a built-in pack from the dropdown above and click **Run Full Plan** to test immediately!")
+    st.info("Select a built-in pack from the dropdown above and click 'Run Full Plan' to test immediately.")
     st.stop()
 
 # ---------------------------------------------------------------- MAIN TABS
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📋 Event Plan & Schedule",
-    "⚡ Live Updates & Changelog",
-    "🛡️ Constraint Validation",
-    "🧪 What-If & Export"
+    "Plan & Schedule",
+    "Live Updates & Diff",
+    "Constraint Validation",
+    "What-If & Export"
 ])
 
-LIGHT_CHART = dict(
+MONO_CHART = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="#1e293b", family="Inter"),
+    font=dict(color="#09090b", family="Inter"),
     margin=dict(l=0, r=0, t=20, b=10)
 )
-CHART_COLORS = ["#0284c7", "#4f46e5", "#059669", "#d97706", "#dc2626", "#64748b"]
+MONO_PALETTE = ["#18181b", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7"]
 
 # ================================================================ TAB 1: PLAN & SCHEDULE
 with tab1:
@@ -392,14 +484,14 @@ with tab1:
     b = P["budget"]
 
     # 1. VENUE SECTION
-    st.markdown("#### 🏢 Venue Selection")
+    st.markdown("#### Venue Selection")
     ch_v = v.get("chosen")
     if ch_v:
         reqs_str = ", ".join(v.get("requirements", [])) or "None specified"
         st.markdown(f"""
         <div class="info-card">
             <b>Selected: {ch_v['venue']}</b> &nbsp;·&nbsp; {int(ch_v['capacity'])} Seats &nbsp;·&nbsp; {pkr(ch_v['price'])}<br>
-            <span style="color:#64748b;font-size:12.5px;">Rule: Cheapest venue seating all {v['seats_needed']} people meeting requirements: <i>{reqs_str}</i>.</span>
+            <span style="color:#71717a;font-size:12.5px;">Rule: Cheapest venue seating all {v['seats_needed']} people meeting requirements: <i>{reqs_str}</i>.</span>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -410,7 +502,7 @@ with tab1:
         "Seats": opt["capacity"],
         "Rental": pkr(opt["price"]),
         "Features": ", ".join(opt.get("features", [])) or "Standard",
-        "Compliant": "✅ Yes" if opt["feasible"] else "❌ No",
+        "Compliant": "Yes" if opt["feasible"] else "No",
         "Reason": opt["reason"]
     } for opt in v.get("options", [])])
     render_table(v_df)
@@ -418,7 +510,7 @@ with tab1:
     st.markdown("---")
 
     # 2. SCHEDULE SECTION
-    st.markdown("#### ⏱️ Schedule & Timetable")
+    st.markdown("#### Schedule & Timetable")
     if s_.get("blocks"):
         st.caption(f"Event starts at **{s_['start']}** · Total planned duration: **{s_['duration']} minutes**")
 
@@ -433,12 +525,12 @@ with tab1:
         } for r in s_["blocks"]])
 
         color_map = {
-            "hacking": "#0284c7",
-            "judging": "#4f46e5",
-            "break": "#d97706",
-            "break (mandatory)": "#d97706",
-            "activity": "#64748b",
-            "activity (mandatory)": "#059669"
+            "hacking": "#18181b",
+            "judging": "#3f3f46",
+            "break": "#71717a",
+            "break (mandatory)": "#71717a",
+            "activity": "#a1a1aa",
+            "activity (mandatory)": "#52525b"
         }
         fig_gantt = px.timeline(
             dfg, x_start="Start", x_end="Finish", y="Activity", color="Category",
@@ -446,8 +538,8 @@ with tab1:
             hover_data={"Duration": True, "Start": "|%H:%M", "Finish": "|%H:%M"}
         )
         fig_gantt.update_yaxes(autorange="reversed", title=None)
-        fig_gantt.update_xaxes(tickformat="%H:%M", gridcolor="#e2e8f0", title=None)
-        fig_gantt.update_layout(**LIGHT_CHART, height=300, legend=dict(orientation="h", y=-0.2))
+        fig_gantt.update_xaxes(tickformat="%H:%M", gridcolor="#e4e4e7", title=None)
+        fig_gantt.update_layout(**MONO_CHART, height=300, legend=dict(orientation="h", y=-0.2))
         st.plotly_chart(fig_gantt, use_container_width=True)
 
         sched_view = dfb[["start", "end", "activity", "minutes", "type"]].copy()
@@ -459,7 +551,7 @@ with tab1:
     # 3. FOOD & JUDGING
     col_f, col_j = st.columns(2)
     with col_f:
-        st.markdown("#### 🍱 Catering & Meals")
+        st.markdown("#### Catering & Meals")
         ch_f = fd.get("chosen")
         if ch_f:
             st.markdown(f"""
@@ -475,13 +567,13 @@ with tab1:
             "Option": opt["option"],
             "Price/Head": pkr(opt["price_per_head"]),
             "Total Cost": pkr(opt["cost"]),
-            "Compliant": "✅ Yes" if opt["feasible"] else "❌ No",
+            "Compliant": "Yes" if opt["feasible"] else "No",
             "Notes": opt["reason"]
         } for opt in fd.get("options", [])])
         render_table(f_df)
 
     with col_j:
-        st.markdown("#### ⚖️ Judging Plan")
+        st.markdown("#### Judging Plan")
         if j.get("ok"):
             st.markdown(f"""
             <div class="info-card">
@@ -496,7 +588,7 @@ with tab1:
     st.markdown("---")
 
     # 4. BUDGET BREAKDOWN
-    st.markdown("#### 💰 Budget Allocation")
+    st.markdown("#### Budget Allocation")
     b_col1, b_col2 = st.columns([3, 2])
     with b_col1:
         st.markdown(f"Total Allocated: **{pkr(b['total'])}** of Approved Limit: **{pkr(b['budget'])}** (Remaining: **{pkr(b['remaining'])}**)")
@@ -509,7 +601,7 @@ with tab1:
         render_table(b_lines)
 
         if b.get("proposed"):
-            st.markdown("##### ⚠️ Proposed / Unapproved Expenses (Excluded)")
+            st.markdown("##### Proposed / Unapproved Expenses (Excluded)")
             prop_df = pd.DataFrame([{
                 "Item": p["item"],
                 "Amount": pkr(p["amount"]),
@@ -525,17 +617,17 @@ with tab1:
         if chart_data:
             fig_pie = px.pie(
                 pd.DataFrame(chart_data), names="Item", values="Cost",
-                hole=0.6, color_discrete_sequence=CHART_COLORS
+                hole=0.6, color_discrete_sequence=MONO_PALETTE
             )
             fig_pie.update_traces(textinfo="percent", hovertemplate="%{label}<br>Rs %{value:,.0f}<extra></extra>")
-            fig_pie.update_layout(**LIGHT_CHART, height=280)
+            fig_pie.update_layout(**MONO_CHART, height=280)
             st.plotly_chart(fig_pie, use_container_width=True)
         else:
             st.info("No budget breakdown items.")
 
 # ================================================================ TAB 2: LIVE UPDATES
 with tab2:
-    st.markdown("#### ⚡ Process New Event Message")
+    st.markdown("#### Process New Event Message")
     st.caption("Paste any update (e.g. updated bill, catering quote change, attendance shift, unapproved request).")
 
     new_update_text = st.text_area(
@@ -545,7 +637,7 @@ with tab2:
         key="update_box"
     )
 
-    if st.button("⚡ Process Update", type="primary"):
+    if st.button("Process Update", type="primary"):
         if not new_update_text.strip():
             st.error("Please enter a message to process.")
         else:
@@ -553,30 +645,29 @@ with tab2:
             with st.spinner("Processing update and resolving conflicts..."):
                 res = eng.run_update(new_update_text.strip(), p)
             if res.get("ok"):
-                st.success(f"Update applied! Version is now v{eng.current['n']}.")
+                st.success(f"Update applied (Version v{eng.current['n']}).")
             else:
                 st.error(res.get("error", "Update failed."))
             st.rerun()
 
     st.markdown("---")
-    st.markdown("#### 📜 Version History & Changes")
+    st.markdown("#### Version History & Changes")
     if len(S["versions"]) > 1:
         hist_rows = []
         for v_item in S["versions"]:
             hist_rows.append({
                 "Version": f"v{v_item['n']}",
                 "Run": v_item["run"],
-                "Status": "✅ Feasible" if v_item["validation"]["feasible"] else "❌ Not Feasible",
+                "Status": "Feasible" if v_item["validation"]["feasible"] else "Not Feasible",
                 "Total Cost": pkr(v_item["plan"]["budget"]["total"]),
                 "Changed Areas": ", ".join(v_item.get("changed_domains", [])) or "None",
                 "Timestamp": v_item["timestamp"]
             })
         render_table(hist_rows)
 
-    # Show decisions & rejections
     rej_decisions = [d for d in eng.decisions if d.kind in ("rejected", "conflict", "rollback")]
     if rej_decisions:
-        st.markdown("##### 🚫 Rejected Messages & Rule Protections")
+        st.markdown("##### Rejected Messages & Rule Protections")
         for d in rej_decisions:
             st.markdown(f"""
             <div class="reject-card">
@@ -584,9 +675,8 @@ with tab2:
             </div>
             """, unsafe_allow_html=True)
 
-    # Latest diff
     if cur.get("diff"):
-        with st.expander("🔍 View Before / After Diff for Latest Update", expanded=True):
+        with st.expander("View Before / After Diff for Latest Update", expanded=True):
             for area, dd in cur["diff"].items():
                 c_before, c_after = st.columns(2)
                 with c_before:
@@ -598,34 +688,34 @@ with tab2:
 
 # ================================================================ TAB 3: VALIDATION
 with tab3:
-    st.markdown("#### 🛡️ Constraint & Rule Checklist")
+    st.markdown("#### Constraint & Rule Checklist")
     st.caption("Every hard constraint must pass for the event plan to be deemed feasible.")
 
     checks = cur["validation"]["checks"]
     hard_checks = [c for c in checks if c["hard"]]
     soft_checks = [c for c in checks if not c["hard"]]
 
-    st.markdown("##### 🔒 Hard Constraints (Must Pass)")
+    st.markdown("##### Hard Constraints (Must Pass)")
     for c in hard_checks:
         pill_cls = "pill-pass" if c["passed"] else "pill-fail"
-        icon = "✅" if c["passed"] else "❌"
+        badge_text = "PASS" if c["passed"] else "FAIL"
         st.markdown(f"""
-        <div style="padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:8px;">
-            <span class="pill {pill_cls}">{icon} {'PASS' if c['passed'] else 'FAIL'}</span>
-            <b>{c['constraint']}</b> &nbsp;·&nbsp; <span style="color:#475569;">{c['detail']}</span>
-            {f'<div style="color:#dc2626;font-size:12px;margin-top:4px;"><b>Fix:</b> {c["suggestion"]}</div>' if (not c['passed'] and c.get('suggestion')) else ''}
+        <div style="padding:10px 14px; background:#fafafa; border:1px solid #e4e4e7; border-radius:6px; margin-bottom:8px;">
+            <span class="pill {pill_cls}">{badge_text}</span>
+            &nbsp;<b>{c['constraint']}</b> &nbsp;·&nbsp; <span style="color:#71717a;">{c['detail']}</span>
+            {f'<div style="color:#09090b;font-weight:600;font-size:12px;margin-top:4px;">Fix: {c["suggestion"]}</div>' if (not c['passed'] and c.get('suggestion')) else ''}
         </div>
         """, unsafe_allow_html=True)
 
     if soft_checks:
-        st.markdown("##### ⚠️ Soft Constraints & Advisories")
+        st.markdown("##### Soft Constraints & Advisories")
         for c in soft_checks:
             pill_cls = "pill-pass" if c["passed"] else "pill-warn"
-            icon = "✅" if c["passed"] else "⚠️"
+            badge_text = "OK" if c["passed"] else "WARN"
             st.markdown(f"""
-            <div style="padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:6px;">
-                <span class="pill {pill_cls}">{icon} {'OK' if c['passed'] else 'WARN'}</span>
-                <b>{c['constraint']}</b> &nbsp;·&nbsp; <span style="color:#475569;">{c['detail']}</span>
+            <div style="padding:8px 12px; background:#fafafa; border:1px solid #e4e4e7; border-radius:6px; margin-bottom:6px;">
+                <span class="pill {pill_cls}">{badge_text}</span>
+                &nbsp;<b>{c['constraint']}</b> &nbsp;·&nbsp; <span style="color:#71717a;">{c['detail']}</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -634,7 +724,7 @@ with tab4:
     col_sim, col_exp = st.columns([3, 2])
 
     with col_sim:
-        st.markdown("#### 🧪 Instant What-If Simulator")
+        st.markdown("#### Instant What-If Simulator")
         st.caption("Simulate variations in participants, budget, or judges. Re-plans in 0 model calls / 0 tokens.")
 
         from core.knowledge import Facts as _Facts
@@ -667,7 +757,7 @@ with tab4:
 
         if sim_overrides:
             P_sim, V_sim = what_if(eng.ledger, S.get("cache", {}), S.get("settings", {}), sim_overrides)
-            status_text = "✅ FEASIBLE" if V_sim["feasible"] else "❌ NOT FEASIBLE"
+            status_text = "FEASIBLE" if V_sim["feasible"] else "NOT FEASIBLE"
             st.markdown(f"**Simulation Result: {status_text}**")
 
             sim_comp = [
@@ -681,7 +771,7 @@ with tab4:
             render_table(sim_comp)
 
     with col_exp:
-        st.markdown("#### 📥 One-Click Export")
+        st.markdown("#### One-Click Export")
         st.caption("Download the plan, provenance ledger, and trace logs.")
 
         plan_doc = {
@@ -693,28 +783,28 @@ with tab4:
         }
 
         st.download_button(
-            "📄 Download Final Plan (Markdown)",
+            "Download Final Plan (Markdown)",
             plan_markdown(cur, S),
             file_name="event_plan.md",
             mime="text/markdown",
             use_container_width=True
         )
         st.download_button(
-            "💾 Download Final Plan (JSON)",
+            "Download Final Plan (JSON)",
             json.dumps(plan_doc, indent=2, default=str),
             file_name="event_plan.json",
             mime="application/json",
             use_container_width=True
         )
         st.download_button(
-            "🔍 Download Full Trace Log (Markdown)",
+            "Download Full Trace Log (Markdown)",
             trace_markdown(eng.calls, eng.decisions, S["run_times"]),
             file_name="execution_trace.md",
             mime="text/markdown",
             use_container_width=True
         )
         st.download_button(
-            "📦 Download Complete Submission Bundle",
+            "Download Complete Submission Bundle",
             plan_markdown(cur, S) + "\n\n---\n\n" + trace_markdown(eng.calls, eng.decisions, S["run_times"]),
             file_name="concord_complete_submission.md",
             mime="text/markdown",
